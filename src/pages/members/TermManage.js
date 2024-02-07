@@ -4,7 +4,8 @@ import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react'
 import TermAdd from '../../components/members/TermAdd';
 import { useDispatch, useSelector } from 'react-redux';
-import { requestSearchTerm } from '../../slice/termSlice';
+import { requestGetTermDetailsByTermId, requestSearchTerm } from '../../slice/termSlice';
+import TermDetailAdd from '../../components/members/TermDetailAdd';
 
 const termColumns = [
     { field: 'id', headerName: 'ID', width: 15 },
@@ -17,30 +18,20 @@ const termColumns = [
 
 const termDetailColumns = [
     { field: 'id', headerName: 'ID', width: 15 },
-    { field: 'termId', headerName: '약관ID', width: 15 },
     { field: 'title', headerName: '제목', width: 150 },
     { field: 'content', headerName: '내용', width: 150 },
     { field: 'version', headerName: '버전', width: 15 },
     { field: 'createdAt', headerName: '등록일' },
 ]
 
-const termDetailRows = [
-    { id: 1, termId: 1, title: "개인정보 동의약관", content: "개인정보 동의합니다..", version: 1, createdAt: "2023.01.01" },
-    { id: 2, termId: 1, title: "민감정보 동의약관", content: "민감정보 사용에 동의..", version: 2, createdAt: "2023.01.01" },
-    { id: 3, termId: 1, title: "개인정보 사용동의", content: "개인정보 사용에 ..", version: 3, createdAt: "2023.01.01" },
-    { id: 4, termId: 2, title: "kyumall 사용동의", content: "서비스 이용에 ..", version: 1, createdAt: "2023.01.01" },
-    { id: 5, termId: 2, title: "kyumall 사용동의", content: "서비스 이용에 ..", version: 2, createdAt: "2023.01.01" },
-    { id: 6, termId: 3, title: "마케팅 이용동의", content: "마케팅에 개인정보 ..", version: 1, createdAt: "2023.01.01" },
-    { id: 7, termId: 3, title: "마케팅 정보제공동의", content: "마케팅 정보를 ..", version: 2, createdAt: "2023.01.01" }
-]
-
-
 
 const TermManage = () => {
     const [searchTermText, setSearchTermText] = useState("");
-    const [selectedTerm, setSelectedTerm] = useState({ termId: "", name: "", type: "", inuse: "", createdAt: "" });
+    const [selectedTerm, setSelectedTerm] = useState({ id: "", name: "", type: "", status: "", createdAt: "" });
     const [termModalOpen, setTermModalOpen] = useState(false);
+    const [termDetailModalOpen, setTermDetailModalOpen] = useState(false);
     const terms = useSelector((state) => state.termSlice.searchedTerms);
+    const termDetails = useSelector((state) => state.termSlice.termDetails);
     const dispatch = useDispatch();
 
     const searchTerm = async () => {
@@ -53,6 +44,16 @@ const TermManage = () => {
             console.log("약관 조회 에러");
         }
     }
+    const getTermDetailsByTermId = async (selectedTermId) => {
+        try {
+            const param = {
+                termId: selectedTermId
+            }
+            await dispatch(requestGetTermDetailsByTermId(param)).unwrap();
+        } catch {
+            console.log("약관 상세 조회 에러");
+        }
+    }
 
     useEffect(() => {
         searchTerm();
@@ -62,16 +63,23 @@ const TermManage = () => {
         e.preventDefault();
         searchTerm();
     }
-
+    // 약관 팝업
     const onAddTermOpen = () => setTermModalOpen(true);
     const onAddTermClose = () => {
         setTermModalOpen(false);
         searchTerm();
     };
+    // 약관 상세 팝업
+    const onAddTermDetailOpen = () => setTermDetailModalOpen(true);
+    const onAddTermDetailClose = () => {
+        setTermDetailModalOpen(false);
+        //searchTerm();
+    };
 
     const onTermRowClick = (e) => {
         const term = e.row;
         setSelectedTerm(term);
+        getTermDetailsByTermId(term.id);
     }
 
     const onDetailTermRowClick = () => {
@@ -106,7 +114,7 @@ const TermManage = () => {
                             <Box sx={{ mt: 1, p: 2, display: 'flex', justifyContent: 'space-between' }} bgcolor="#EAF9FD">
                                 <Grid container columns={{ xs: 4, sm: 8, md: 12 }} spacing={1}>
                                     <Grid item xs={4} sm={4} md={6}>
-                                        <TextField label="약관ID" variant="outlined" size='small' value={selectedTerm.termId} disabled />
+                                        <TextField label="약관ID" variant="outlined" size='small' value={selectedTerm.id} disabled />
                                     </Grid>
                                     <Grid item xs={4} sm={4} md={6}>
                                         <TextField label="약관 이름" variant="outlined" size='small' value={selectedTerm.name} disabled />
@@ -115,14 +123,17 @@ const TermManage = () => {
                                         <TextField label="약관 타입" variant="outlined" size='small' value={selectedTerm.type} disabled />
                                     </Grid>
                                     <Grid item xs={4} sm={4} md={6}>
-                                        <TextField label="사용중" variant="outlined" size='small' value={selectedTerm.inuse} disabled />
+                                        <TextField label="약관 상태" variant="outlined" size='small' value={selectedTerm.type} disabled />
+                                    </Grid>
+                                    <Grid item xs={4} sm={4} md={6}>
+                                        <TextField label="상태" variant="outlined" size='small' value={selectedTerm.status} disabled />
                                     </Grid>
                                 </Grid>
                             </Box>
                             <Box my={1}>
-                                <Button variant='outlined'>약관 상세 추가</Button>
+                                <Button variant='outlined' onClick={onAddTermDetailOpen}>약관 상세 추가</Button>
                             </Box>
-                            <DataGrid rows={termDetailRows} columns={termDetailColumns} onRowClick={onDetailTermRowClick} />
+                            <DataGrid rows={termDetails} columns={termDetailColumns} onRowClick={onDetailTermRowClick} />
                         </Box>
                     </Grid>
                 </Grid>
@@ -130,6 +141,11 @@ const TermManage = () => {
             <Modal open={termModalOpen} onClose={onAddTermClose}>
                 <ModalContent>
                     <TermAdd onClose={onAddTermClose} />
+                </ModalContent>
+            </Modal>
+            <Modal open={termDetailModalOpen} onClose={onAddTermDetailClose}>
+                <ModalContent>
+                    <TermDetailAdd termId={selectedTerm.id} onClose={onAddTermDetailClose} />
                 </ModalContent>
             </Modal>
         </div>

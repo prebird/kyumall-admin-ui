@@ -8,6 +8,8 @@ export const FormField = ({ field: {
     name,
     label,
     type = "text",
+    rows = undefined,
+    disabled = undefined,
     errorText = undefined,
     required = false,
     autoFocus = false,
@@ -15,7 +17,7 @@ export const FormField = ({ field: {
     hintText = undefined,
     placeholder = undefined,
     selectInfos = [],                // select 일 경우
-    meta: { touched, error } }
+    meta: { touched, error } },
 }) => {
     const isError = error ? true : false;
 
@@ -38,6 +40,8 @@ export const FormField = ({ field: {
                 id={name}
                 label={label}
                 type={type}
+                multiline={rows != undefined ? true : false}
+                rows={rows ?? rows}
                 name={name}
                 autoFocus={autoFocus}           // 페이지 이동시 자동 포커스
                 autoComplete={autoComplete}     // 자동 완성 (브라우저 내 캐시)
@@ -46,6 +50,7 @@ export const FormField = ({ field: {
                 placeholder={placeholder}
                 {...input}
                 size='small'
+                disabled={disabled}
             />
             {errorText && <Typography variant='caption' color='red'>{errorText}</Typography>}
             {hintText && <Typography variant="caption" color="text.secondary">{hintText}</Typography>}
