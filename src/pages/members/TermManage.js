@@ -37,6 +37,7 @@ const termDetailRows = [
 
 
 const TermManage = () => {
+    const [searchTermText, setSearchTermText] = useState("");
     const [selectedTerm, setSelectedTerm] = useState({ termId: "", name: "", type: "", inuse: "", createdAt: "" });
     const [termModalOpen, setTermModalOpen] = useState(false);
     const terms = useSelector((state) => state.termSlice.searchedTerms);
@@ -45,7 +46,7 @@ const TermManage = () => {
     const searchTerm = async () => {
         try {
             const param = {
-                termName: ""
+                termName: searchTermText
             }
             await dispatch(requestSearchTerm(param)).unwrap();
         } catch {
@@ -56,6 +57,11 @@ const TermManage = () => {
     useEffect(() => {
         searchTerm();
     }, [])
+
+    const onSearchClick = (e) => {
+        e.preventDefault();
+        searchTerm();
+    }
 
     const onAddTermOpen = () => setTermModalOpen(true);
     const onAddTermClose = () => {
@@ -82,11 +88,11 @@ const TermManage = () => {
                 </Grid>
                 <Grid container justifyContent='center' spacing={2}>
                     <Grid item xs={5}>
-                        <Box sx={{ flexGrow: 1 }}>
+                        <Box>
                             <Typography variant='h6'>약관정보</Typography>
-                            <Box sx={{ mt: 1, p: 2, display: 'flex', justifyContent: 'space-between' }} bgcolor="#FEEBC3">
-                                <TextField label="약관명" variant="outlined" size='small' />
-                                <Button variant='contained'>검색</Button>
+                            <Box sx={{ mt: 1, p: 2, display: 'flex', justifyContent: 'space-between' }} component='form' onSubmit={onSearchClick} bgcolor="#FEEBC3">
+                                <TextField label="약관명" variant="outlined" size='small' value={searchTermText} onChange={(e) => setSearchTermText(e.target.value)} />
+                                <Button variant='contained' type='submit'>검색</Button>
                             </Box>
                         </Box>
                         <Box my={1}>
@@ -95,7 +101,7 @@ const TermManage = () => {
                         <DataGrid rows={terms} columns={termColumns} onRowClick={onTermRowClick} />
                     </Grid>
                     <Grid item xs={5}>
-                        <Box sx={{ flexGrow: 1 }}>
+                        <Box>
                             <Typography variant='h6'>약관상세</Typography>
                             <Box sx={{ mt: 1, p: 2, display: 'flex', justifyContent: 'space-between' }} bgcolor="#EAF9FD">
                                 <Grid container columns={{ xs: 4, sm: 8, md: 12 }} spacing={1}>
